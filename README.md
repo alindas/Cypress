@@ -459,7 +459,7 @@ cypress 查找元素的选择器有以下几种：
 
 1. 闭包
 
-   cypress 能使用 `then` 对上一个命令的值或引用就行保存。
+   cypress 能使用 `then` 对上一个命令的值或引用进行保存。
 
    ```js
    cy.get("btn").then(btn => {
@@ -595,9 +595,185 @@ beforeEach(() => {
 yarn cypress open --env userEnv=testDev
 ```
 
+#### 运行失败自动重试
 
+由于各种不可抗力，偶尔会发生测试用例失败的情况，此时可以设置测试用例自动重试。
 
+```
+// 安装 cypress-plugin-retires 插件
+yarn add cypress-plugin-retires --dev
 
+// cypress>support>index.js 下增加如下代码
+require('cypress-plugin-retires');
+
+// pageage.json 添加添加快捷命令
+"script": {
+	"retryCases": "CYPRESS_RETRIES=2 cypress run"
+}
+```
+
+### 接口测试
+
+Cypress 发起 HTTP 请求需要用到 `cy.request()`
+
+```js
+// url 为访问的接口地址，如果配置了 baseUrl 则可以总结编写后面部分
+// method 有 GET POST PUT DELETE 四种
+
+cy.request([method], url, [body]);
+cy.request(options)
+
+// options 可选项用来改变 cy.request 的默认行为
+{
+	log: true,
+	url: null,
+	method: GET,
+	// 添加鉴权标头
+	auth: null,
+	body: null,
+	// 返回的不是 2XX 或 3XX 时，是否直接返回失败
+	failOnStatusCode: true,
+	// 是否自动重定向
+	followRedirect: true,
+	// 是否将 body 的值转换为 url encoded 并设置 x-www-form-urlencoded 标头
+	form: false,
+	// 是否接受 gzip 编码
+	gzip: true,
+	// 要发送的额外请求头
+	headers: null,
+	// 把查询参数追加到 url 后面
+	qs: null,
+	// status 引发的失败是否自动重试，开启后默认重试 4 次
+	retryOnStatusCodeFailture: false,
+	// 网络问题引发的失败是否自动重试，开启后默认重试 4 次
+	retryOnNetworkFailture: null,
+	timeout: responseTimeout
+}
+```
+
+ `cy.request` 常与 `as` 搭配使用，用来进行接口返回值的断言。
+
+```js
+cy.request('https:// www.baidu.com').as('baidu');
+cy.get('@baidu').should(res => {
+	expect(res.body).to.have.length(500);
+	expect(res).to.have.property('headers');
+	expect(res).to.have.property('duration');
+})
+```
+
+### Mock Server
+
+#### json-server
+
+以 `json-server` 为例，快速搭建一套 `REST API` 格式的 Mock Server.
+
+```
+// 安装
+npm install json-server -g
+// 创建目录
+mkdir mockServer
+// 在根目录下创建 db.json 文件
+{
+	"users": [{
+		"id": 1,
+		"name": "lili",
+		"gender": "girl"
+	}],
+	"books": [{
+        "id": 1,
+        "name": "前端自动化测试"
+	}]
+}
+// 在根目录下启动 json server
+json-server --watch db.json
+
+// 启动成功后，访问对应的地址便是对应的资源
+http://localhost:3000/users
+http://localhost:3000/books
+```
+
+#### server&router
+
+Cypress 也可以通过自带命令 `cy.server` 和 `cy.router` 模拟接口请求的各种返回及路由跳转。
+
+```
+// 用于启动服务器，响应路由到 cy.route 和 cy.request
+cy.server([options])
+
+// options
+{
+    // 设置 stubbed 返回的延迟时间
+	Delay: 0,
+	headers: null,
+	method: 'GET',
+	// 当一个 XHR 被终止时调用
+	onAbort: undefined,
+	// 设定请求被发送时的回调函数
+	onRequest: undefined,
+	// 设定服务器返回时的回调函数
+	onResponse: undefined,
+	// 设定 stubbed 路由的返回 body
+	response: null,
+	// 设定 stubbed 路由的返回状态码
+	status: 200
+}
+```
+
+`cy.serve` 通常与 `cy.route` 搭配使用，`cy.route` 用来管理整个控制网络，其 url 参数遵循 [minimatch](https://github.com/isaacs/minimatch) 模式
+
+```
+// cy.route 语法
+cy.route([method], url, [response])
+cy.route(callbackFn)
+cy.route(options)
+
+// url 代表要请求的地址，遵循 minimatch 模式
+cy.route('**.users.*')
+// 将匹配
+http://host1/users/1
+http://host2/users/2
+
+cy.route('**.users.**')
+// 将匹配
+http://host1/users/edit/1
+http://host2/users/edit/2
+```
+
+截获接口返回值
+
+```js
+// 截获所有包括 /users 的请求返回值，如果未传递 responese，则使用真实的服务器返回
+cy.server();
+cy.route('**/users/').as('getUsers');
+cy.visit('/users');
+cy.wait('@getUsers').then(xhr => {
+	expect(xhr.status).to.eq(200);
+})
+
+// 更改接口返回值
+describe('测试 Cypress 自带 Mock', () => {
+	it('正常登录，Mock 报 503', () => {
+		cy.serve();
+		cy.route({
+			method: 'POST',
+			url: '/login',
+			status: 503,
+			responese: {
+				success: false,
+				data: 'Not Success'
+			}
+		}).as('login');
+		cy.visit('/login');
+		cy.get('@login').then(res => {
+			expect(res.status).to.eq(503);
+			expect(res.responseBody.data).to.equal('Not Success');
+		})
+	})
+})
+```
+
+## 高级
 
 
 
