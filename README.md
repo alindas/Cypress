@@ -42,7 +42,7 @@
 
 + **不支持移动端应用测试**
 
-  
+
 
 ## 初体验
 
@@ -165,7 +165,7 @@ beforeEach(() => {
     "pageLoadTimeoutpage": 60000,
     // 等待 cy.wait 命令中的 XHR 请求
     "requestTimeout": 5000,
-    // cy.request | cy.wait | cy.fixture | cy.getCookie | cy.getCookies 
+    // cy.request | cy.wait | cy.fixture | cy.getCookie | cy.getCookies
     // cy.setCookie | cy.clearCookie | cy.clearCookies | cy.screenShot 的超时时间
     "responseTimeout": 30000,
     // 项目根目录
@@ -367,7 +367,7 @@ cypress 查找元素的选择器有以下几种：
 
 + 常规选择器
 
-  `#id` 	`.class` 	`attribues`	 `:nth-child(n)`	 `Cypress.$()` 
+  `#id` 	`.class` 	`attribues`	 `:nth-child(n)`	 `Cypress.$()`
 
 #### 查找方法
 
@@ -439,6 +439,18 @@ cypress 查找元素的选择器有以下几种：
 
   获取数组元素集对应位置的元素
 
+#### 操作命令
+
++ .click()
++ .dbclick()
++ .rightclick()
++ .type()
++ .clear()
++ .check()
++ .uncheck()
++ .select()
++ .trigger()
+
 ### 注意项
 
 1. Cypress 命令是异步的
@@ -447,13 +459,9 @@ cypress 查找元素的选择器有以下几种：
    // Cypress 在调用时不会马上执行，而是会把所有命令排队，然后再执行
    const Ids = cy.get('#id');
    Ids.click(); // 失败，Ids 为 undefined
-   
+
    // Cypress 虽然是异步的，但不同于 Promise，Cypress 不支持使用 async 和 await
    ```
-
-   
-
-2. 
 
 ### 特异性
 
@@ -472,7 +480,7 @@ cypress 查找元素的选择器有以下几种：
    })
    ```
 
-   
+
 
 2. 变量和别名
 
@@ -487,7 +495,7 @@ cypress 查找元素的选择器有以下几种：
    ```js
    // filePath 为默认外部路径下的文件，encoding 为支持的编码格式，支持 ASCII，Unicode，UTF-8 和 // // Base64
    cy.fixture(filePath, [encoding], [options])
-   
+
    cy.fixture('users.json').as('userData');
    cy.get('@userData').then(() => {
        // code
