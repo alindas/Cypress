@@ -44,7 +44,7 @@
 
 
 
-## 初体验
+## 入门
 
 ### 安装
 
@@ -105,10 +105,6 @@ describe('登录', () => {
 
 保存后返回 cypress 的 GUI 图形操作面板，点击新添加的 `loginInWebForm.spec.js` 测试文件，便能看到对应的测试运行效果。
 
-
-
-## 核心
-
 ### 文件结构
 
 #### fixtures
@@ -133,6 +129,10 @@ beforeEach(() => {
 	cy.log(`当前环境变量：${JSON.stringify(Cypress.env())}`)
 })
 ```
+
+
+
+## 核心
 
 ### 配置文件
 
@@ -203,7 +203,7 @@ Cypress.config(object: {name, value});
 
 在进行多重断言时（单个命令后跟多个断言），进行每个断言都会对前面的断言进行重复操作。
 
-事实上，cypress 并不会重试所有命令，如果命令是可能改变被测应用程序状态的，则这些命令将不会被重试。cypress 重试的命令有：`cy.get` `find` `contains` 等。[所有会重试的特定命令](https://docs.cypress.io/guides/references/assertions)
+事实上，cypress 并不会重试所有命令，如果命令是可能改变被测应用程序状态的，则这些命令将不会被重试。cypress 重试的命令有：`get` `find` `contains` 等。[所有会重试的特定命令](https://docs.cypress.io/guides/references/assertions)
 
 ### 测试报告
 
@@ -228,10 +228,10 @@ yarn run cypress open --reporter=spec
 
 在测试套件里可以使用钩子函数设置测试的**先决条件**，cypress 提供四个钩子函数：
 
-+ before 所有测试用例执行前运行
-+ after 所有测试用例执行前运行
-+ beforeEach 每个测试用例执行前运行
-+ afterEach 每个测试用例执行后运行
++ `before` 所有测试用例执行前运行
++ `after` 所有测试用例执行前运行
++ `beforeEach` 每个测试用例执行前运行
++ `afterEach` 每个测试用例执行后运行
 
 如果希望在测试套件中排除或指定运行某个测试用例，则可以分别使用 `skip` 和 `only` 进行设置。在对应的`describe` 或 `it` 后面加上该关键字即可生效。
 
@@ -239,12 +239,14 @@ yarn run cypress open --reporter=spec
 >
 > 在测试用例中使用 this.skip() , 则后面的语句不会被执行。
 
+应尽量避免适用根钩子，这在多个测试文件共同运行时可能会带来非预估的冲突。应把钩子限制在 `describe` 和 `it` 中。
+
 #### 动态决策
 
 ```js
 it('动态忽略', () => {
 	if(Cypress.env('runFlag') === 1) {
-		/** code */
+        /** code */
 	}
 	else {
 		/** otherCode */
@@ -287,7 +289,9 @@ describe('动态生成测试', () => {
 
 cypress 的断言基于 [`Chai` 断言库](https://www.chaijs.com/api/assert/)，并且增加了对 `Sinon-Chai` 和 `Chai-jQuery` 断言库的支持。
 
-+ 隐式断言
+多个断言可以链接在一起，增加可读性。
+
++ 隐式断言（首选方式）
 
   `should` 或者 `and`
 
@@ -365,21 +369,21 @@ cypress 查找元素的选择器有以下几种：
 
   `data-cy` 	`data-test`	 `data-testid`
 
-+ 常规选择器
++ 常规选择器（应尽量避免使用）
 
   `#id` 	`.class` 	`attribues`	 `:nth-child(n)`	 `Cypress.$()`
 
 #### 查找方法
 
-+ find(selector)
++ `find(selector)`
 
   查找被定位元素的后代
 
-+ get(selector)
++ `get(selector)`
 
   查找对应的元素
 
-+ contains(selector)
++ `contains(selector)`
 
   获取包含文本的元素
 
@@ -441,25 +445,29 @@ cypress 查找元素的选择器有以下几种：
 
 #### 操作命令
 
-+ .click()
-+ .dbclick()
-+ .rightclick()
-+ .type()
-+ .clear()
-+ .check()
-+ .uncheck()
-+ .select()
-+ .trigger()
++ `.blur()`
++ `.focus()`
++ `.click()`
++ `.dbclick()`
++ `.rightclick()`
++ `.type()` 
++ `.clear()` — 清除输入或文本区域的值，只适用具有 value 的 input 控件和 textarea 控件
++ `.check()` — 选中复选框或单选框
++ `.uncheck()`
++ `.select()` — 选中 <option> 的一个 <select>
++ `.trigger()`
 
 ### 注意项
 
-1. Cypress 命令是异步的
+1. Cypress **命令是异步的**
 
+   因为 Cypress 具有不断重试的机制，异步查找可以跳过在第一时间内无法找到 DOM 元素导致测试运行失败的问题。
+   
    ```js
    // Cypress 在调用时不会马上执行，而是会把所有命令排队，然后再执行
    const Ids = cy.get('#id');
    Ids.click(); // 失败，Ids 为 undefined
-
+   
    // Cypress 虽然是异步的，但不同于 Promise，Cypress 不支持使用 async 和 await
    ```
 
@@ -495,7 +503,7 @@ cypress 查找元素的选择器有以下几种：
    ```js
    // filePath 为默认外部路径下的文件，encoding 为支持的编码格式，支持 ASCII，Unicode，UTF-8 和 // // Base64
    cy.fixture(filePath, [encoding], [options])
-
+   
    cy.fixture('users.json').as('userData');
    cy.get('@userData').then(() => {
        // code
@@ -506,9 +514,25 @@ cypress 查找元素的选择器有以下几种：
 
 ### 最佳实践
 
+#### 别名
+
+能够重用查找到的 DOM 元素。
+
+在每个测试结束后，会清除别名的引用。
+
+```js
+cy.get('.my-selector').as('selector').click()
+
+/* many more actions */
+
+cy.get('@selector')	
+```
+
+
+
 #### 设置全局 URL
 
-`Cypress` 为了绕过同源策略，刚开始运行测试时，会在 local host 上打开一个随机端口进行初始化，直到遇到第一个 `cy.visit` 命令才进行匹配引用程序的 URL。手动设置 `baseUrl` 可以节省 cypress 匹配被测应用程序 url 的时间，还能作为前缀直接忽略掉后面的路径。
+`Cypress` 为了绕过同源策略，刚开始运行测试时，会在 `localhost` 上打开一个随机端口进行初始化，直到遇到第一个 `cy.visit` 命令才进行匹配引用程序的 URL。手动设置 `baseUrl` 可以节省 cypress 匹配被测应用程序 url 的时间，还能作为前缀直接忽略掉后面的路径。
 
 #### 自定义截图
 
@@ -547,7 +571,7 @@ cy.get('#login').screenshot();
 
 #### 自定义命令（封装函数）
 
-使用 `custom commands` 可以创建自定义命令和替换现有命令。其默认储存在  cypress/support/command.js 文件中，在任何测试文件被导入前加载。
+使用 `custom commands` 可以创建自定义命令和替换现有命令。其默认储存在  `cypress/support/command.js` 文件中，在任何测试文件被导入前加载。
 
 ```js
 // 语法格式
@@ -620,6 +644,39 @@ require('cypress-plugin-retires');
 }
 ```
 
+### 常用 API
+
+#### type
+
+用于模拟键盘的操作。响应功能性按键通过 `{}` 进行包裹。
+
+```
+// 输入 name 后回车
+cy.get('selectorInput').type('name').type('{enter}')
+```
+
+
+
+#### Cookies
+
+`cypress` 在每次测试前都会自动清除所有 cookie，以防止状态建立。
+
+[多个 tests 之间共享 cookies](https://www.cnblogs.com/yoyoketang/p/12931419.html)
+
+#### invoke
+
+调用前面获取的对象包装方法。
+
+```js
+const fn = () => {
+  return 'bar'
+}
+
+cy.wrap({ foo: fn }).invoke('foo').should('eq', 'bar') // true
+```
+
+
+
 ### 接口测试
 
 Cypress 发起 HTTP 请求需要用到 `cy.request()`
@@ -674,7 +731,7 @@ cy.get('@baidu').should(res => {
 
 #### json-server
 
-以 `json-server` 为例，快速搭建一套 `REST API` 格式的 Mock Server.
+以 `json-server` 为例，快速搭建一套 `REST API` 格式的 `Mock Server`.
 
 ```
 // 安装
@@ -783,9 +840,25 @@ describe('测试 Cypress 自带 Mock', () => {
 
 ## 高级
 
+### Cypress._
+
+Cypress 自动包含 `lodash` 库，通过 `Cypress._` 使用其 API
+
+### Cypress.$
+
+Cypress 自动包含 `JQuery` 库，通过 `Cypress.$` 使用其 API
+
+### Cypress.Blob
+
+Cypress 自动包含 `Blob` 库，通过 `Cypress.Blob` 使用其 API。用于测试文件上传。
 
 
 
+## 实践解决方案
+
+1. [判断文件已下载](https://www.coder.work/article/7614740)
+2. [测试文件上传](https://cloud.tencent.com/developer/article/1807364)
+3. [cypress 处理截屏和视频录制](https://cloud.tencent.com/developer/article/1638384)
 
 ## 参考资料
 
