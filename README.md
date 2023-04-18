@@ -391,7 +391,7 @@ cypress 查找元素的选择器有以下几种：
   })
   ```
 
-  
+
 
 + `contains(selector)`
 
@@ -460,11 +460,11 @@ cypress 查找元素的选择器有以下几种：
 + `.click()`
 + `.dbclick()`
 + `.rightclick()`
-+ `.type()` 
++ `.type()`
 + `.clear()` — 清除输入或文本区域的值，只适用具有 value 的 input 控件和 textarea 控件
 + `.check()` — 选中复选框或单选框
 + `.uncheck()`
-+ `.select()` — 选中 <option> 的一个 <select>
++ `.select()` — 选中 \<option> 的一个 \<select>
 + `.trigger()`
 
 ### 注意项
@@ -472,12 +472,12 @@ cypress 查找元素的选择器有以下几种：
 1. Cypress **命令是异步的**
 
    因为 Cypress 具有不断重试的机制，异步查找可以跳过在第一时间内无法找到 DOM 元素导致测试运行失败的问题。
-   
+
    ```js
    // Cypress 在调用时不会马上执行，而是会把所有命令排队，然后再执行
    const Ids = cy.get('#id');
    Ids.click(); // 失败，Ids 为 undefined
-   
+
    // Cypress 虽然是异步的，但不同于 Promise，Cypress 不支持使用 async 和 await
    ```
 
@@ -513,7 +513,7 @@ cypress 查找元素的选择器有以下几种：
    ```js
    // filePath 为默认外部路径下的文件，encoding 为支持的编码格式，支持 ASCII，Unicode，UTF-8 和 // // Base64
    cy.fixture(filePath, [encoding], [options])
-   
+
    cy.fixture('users.json').as('userData');
    cy.get('@userData').then(() => {
        // code
@@ -535,7 +535,7 @@ cy.get('.my-selector').as('selector').click()
 
 /* many more actions */
 
-cy.get('@selector')	
+cy.get('@selector')
 ```
 
 
@@ -885,7 +885,7 @@ Cypress 自动包含 `Blob` 库，通过 `Cypress.Blob` 使用其 API。用于�
    ```javascript
    cy.should('have.attr', 'href', 'https://www.helloqa.com')
      .should('have.attr', 'target', '_blank')
-     
+
    cy.then(link => {
        cy.request(link.prop('href'))
          .its('status')
@@ -916,14 +916,14 @@ Cypress 自动包含 `Blob` 库，通过 `Cypress.Blob` 使用其 API。用于�
    })
    ```
 
-   
 
-10. 
+
+10.
 
 ## 实践问题
 
 1. 一个元素出现和消失的间隔在 `21ms` 内，则 `TestRunner` 对元素的判定失败。[资料](https://helloqa.com/2021/03/19/%E4%BD%A0%E4%B8%8D%E7%9F%A5%E9%81%93%E7%9A%84Cypress%E7%B3%BB%E5%88%97/%E4%BD%A0%E4%B8%8D%E7%9F%A5%E9%81%93%E7%9A%84Cypress%E7%B3%BB%E5%88%975%E7%9C%BC%E7%9E%8E%E7%9A%84TestRunner%E2%80%8B/)
-2. 
+2.
 
 ## 参考资料
 
